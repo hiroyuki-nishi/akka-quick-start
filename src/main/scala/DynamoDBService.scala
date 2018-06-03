@@ -34,8 +34,8 @@ class DynamoDBService(private val url: String, private val tableName: String) {
       .withKeySchema(keySchema)
       .withAttributeDefinitions(attributeDefinitions)
       .withProvisionedThroughput(new ProvisionedThroughput()
-        .withReadCapacityUnits(5L)
-        .withWriteCapacityUnits(6L))
+        .withReadCapacityUnits(1L)
+        .withWriteCapacityUnits(1L))
 
     val table = dynamoDB.createTable(request)
     table.waitForActive()
@@ -66,6 +66,14 @@ class DynamoDBService(private val url: String, private val tableName: String) {
     val item = new Item().withPrimaryKey(AttrId, id)
       .withString(AttrTitle, title)
    t.putItem(item)
+  }
+
+  def delete(id: Int): Try[DeleteItemOutcome] = {
+    for {
+      t <- getTable(tableName)
+    } yield {
+      t.deleteItem(AttrId, id)
+    }
   }
 }
 
