@@ -8,7 +8,11 @@ object Main extends App {
   val system = ActorSystem("HogeActorSystem")
   val hogeActor = system.actorOf(Props[HogeActor], "hogeActor")
   val service: DynamoDBService = new DynamoDBService("http://localhost:9999", "ProdactionCatalog")
-  send(list)
+
+  new DynamoDbFlow().run()
+//  val flow = new HogeFlow()
+//  flow.run()
+//  send(list)
 //  delete(list)
 
   def updateTable(tableName: String): Try[TableDescription] = service.updateTable(tableName)
