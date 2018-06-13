@@ -15,18 +15,18 @@ class DynamoDbFlow {
   lazy val flow: Flow[Int, Int, NotUsed] = Flow.fromGraph(GraphDSL.create() { implicit b: GraphDSL.Builder[NotUsed] =>
     import GraphDSL.Implicits._
 
-    lazy val broadcast = b.add(Broadcast[Int](1))
-    lazy val merge = b.add(Merge[Int](1))
+    val broadcast = b.add(Broadcast[Int](1))
+    val merge = b.add(Merge[Int](1))
 
     broadcast.out(0).map(x => { println(x); x}) ~> merge.in(0)
     FlowShape(broadcast.in, merge.out)
   })
-  lazy val sink1: Sink[Int, Future[Done]] = Sink.foreach[Int](x => println(x))
-  lazy val sink2: Sink[Int, Future[Done]] = Sink.foreach[Int](x => println(x))
-  lazy val g = RunnableGraph.fromGraph(GraphDSL.create() { implicit b =>
+  val sink1: Sink[Int, Future[Done]] = Sink.foreach[Int](x => println(x))
+  val sink2: Sink[Int, Future[Done]] = Sink.foreach[Int](x => println(x))
+  val g = RunnableGraph.fromGraph(GraphDSL.create() { implicit b =>
     import GraphDSL.Implicits._
 
-    lazy val broadcast = b.add(Broadcast[Int](2))
+    val broadcast = b.add(Broadcast[Int](2))
     source ~> broadcast.in
 //    broadcast.out(0) ~> Flow[Int].map(x => x) ~> sink1
     broadcast.out(0) ~> flow ~> sink1
