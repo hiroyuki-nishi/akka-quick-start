@@ -38,14 +38,14 @@ class BoxOffice(implicit val timeout: Timeout) extends Actor {
     case GetTickets(event, tickets) =>
       def notFound() = sender() ! TicketSeller.Tickets(event)
       // 子アクター(TicketSeller Actor)に対してTicketSeller.Buy(tickets)
+      // TODO -nishi forwadでなく sender() ! TicketSeller.Buy(tickets)でも同様？ 子アクターが直接値を返す場合にforward?
       def buy(child: ActorRef): Unit = child.forward(TicketSeller.Buy(tickets))
       context.child(event).fold(notFound())(buy)
     case GetEvents =>
       import akka.pattern.ask
       import akka.pattern.pipe
 
-      // askには暗黙的にtimeoutが必要
-      // TODO -nishi 再度コードを見直す
+      // Futureには暗黙的にtimeoutが必要
       def getEvents: Iterable[Future[Option[Event]]] = context.children.map { child =>
         self.ask(GetEvent(child.path.name)).mapTo[Option[Event]]
       }
@@ -55,5 +55,15 @@ class BoxOffice(implicit val timeout: Timeout) extends Actor {
       // pipeは処理の完了時に値をFutureで包んでアクターに送信する。
       // sender()はRestAPIになる。
       pipe(convertToEvents(Future.sequence(getEvents))) to sender()
+    case GetEvent(event) =>
+      def notFound(): Unit = sender() ! None
+      def getEvent(child: ActorRef): Unit = child.forward(TicketSeller.GetEvent)
+      context.child(event).fold(notFound())(getEvent)
+    case CancelEvent(event) =>
+
+//          case CancelEvent(event) =>
+//      def notFound() = sender() ! None
+//      def cancelEvent(child: ActorRef) = child forward TicketSeller.Cancel
+//      context.child(event).fold(notFound())(cancelEvent)
   }
 }

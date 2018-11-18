@@ -14,7 +14,7 @@ class TicketSeller(event: String) extends Actor {
   import TicketSeller._
 
   var tickets = Vector.empty[Ticket]
-  def receive = {
+  def receive: PartialFunction[Any, Unit] = {
     case Add(newTickets) => tickets = tickets ++ newTickets
     case Buy(buyTickets) =>
       val takeTickets = tickets.take(buyTickets).toVector

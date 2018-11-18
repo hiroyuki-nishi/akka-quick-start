@@ -1,3 +1,4 @@
+import BoxOffice.GetTickets
 import akka.actor.ActorRef
 import akka.actor._
 import akka.pattern.ask
@@ -12,8 +13,8 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutor, Future}
 
 class RestApi(system: ActorSystem, timeout: Timeout) extends RestRoutes {
   implicit val requestTimeout = timeout
-  implicit def executionContext = system.dispatcher
-  def createBoxOffice: ActorRef = system.actorOf(BoxOffice.props, BoxOffice.name)
+  implicit def executionContext: ExecutionContextExecutor = system.dispatcher
+  def createBoxOfficeActor: ActorRef = system.actorOf(BoxOffice.props, BoxOffice.name)
 }
 
 trait RestRoutes extends BoxOfficeApi with EventMarshalling {
@@ -64,12 +65,18 @@ trait BoxOfficeApi {
   import BoxOffice._
 
   // Restクラスからimplicitは提供される
+  // ExecutionContextはFutureのために必要
   implicit def executionContext: ExecutionContext
   implicit def requestTimeout: Timeout
-  lazy val boxOffice = createBoxOffice()
+  lazy val boxOffice = createBoxOfficeActor()
 
-  def createBoxOffice(): ActorRef
-  def createEvent(event: String, nrOfTickets: Int): Future[EventResponse] = boxOffice.ask(CreateEvent(event, nrOfTickets)).mapTo[EventResponse]
+  def createBoxOfficeActor(): ActorRef
+  // ask関数で子アクターのBoxOfficeActorのCreateEventがFutureで値を返してきたら
+  // mapToでsealedTraitのEventResponse(EventCreated)を返す
+  def createEvent(event: String, nrOfTickets: Int): Future[EventResponse] =
+    boxOffice.ask(CreateEvent(event, nrOfTickets)).mapTo[EventResponse]
   def getEvents(): Future[Events] = boxOffice.ask(GetEvents).mapTo[Events]
+  def getEvent(event: String) = boxOffice.ask(GetEvent).mapTo
+  def getTickets(event: String, nrOfTickets: Int) = boxOffice.ask(GetTickets).mapTo[TicketSeller.Tickets]
   def cancelEvent(event: String) = boxOffice.ask(CancelEvent(event)).mapTo[Option[Event]]
 }
