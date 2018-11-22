@@ -20,7 +20,7 @@ class RestApi(system: ActorSystem, timeout: Timeout) extends RestRoutes {
 trait RestRoutes extends BoxOfficeApi with EventMarshalling {
   import akka.http.scaladsl.model.StatusCodes._
 
-  def routes = eventRoute ~ eventsRoute
+  def routes = eventRoute ~ eventsRoute ~ ticketsRoute
   def eventRoute =
     pathPrefix("events") {
       pathEndOrSingleSlash {
@@ -49,7 +49,7 @@ trait RestRoutes extends BoxOfficeApi with EventMarshalling {
         } ~
         get {
           onSuccess(getEvents()) { events =>
-            complete(OK, "")
+            complete(OK, events)
           }
         } ~
         delete {
@@ -59,6 +59,24 @@ trait RestRoutes extends BoxOfficeApi with EventMarshalling {
         }
       }
     }
+
+  def ticketsRoute =
+    // TODO Segmentとは？
+    pathPrefix("events" / Segment / "tickets") { event =>
+      post {
+        pathEndOrSingleSlash {
+          // TODO entityとは？ asとは？
+          // unmarshallingなjsonをmarshallingしてくれるのがentity
+          entity(as[TicketRequest]) { request =>
+            onSuccess(requestTickets(event, request.tickets)) { tickets =>
+              if (tickets.entries.isEmpty) complete(NotFound)
+              else complete(Created, tickets)
+            }
+          }
+        }
+      }
+    }
+
 }
 
 trait BoxOfficeApi {
@@ -77,6 +95,8 @@ trait BoxOfficeApi {
     boxOffice.ask(CreateEvent(event, nrOfTickets)).mapTo[EventResponse]
   def getEvents(): Future[Events] = boxOffice.ask(GetEvents).mapTo[Events]
   def getEvent(event: String) = boxOffice.ask(GetEvent).mapTo
-  def getTickets(event: String, nrOfTickets: Int) = boxOffice.ask(GetTickets).mapTo[TicketSeller.Tickets]
+  // TODO -nishi 定期的にコードを振り返る
+  def requestTickets(event: String, tickets: Int) =
+    boxOffice.ask(GetTickets(event, tickets)).mapTo[TicketSeller.Tickets]
   def cancelEvent(event: String) = boxOffice.ask(CancelEvent(event)).mapTo[Option[Event]]
 }

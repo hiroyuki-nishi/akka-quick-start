@@ -16,14 +16,12 @@ class TicketSeller(event: String) extends Actor {
   var tickets = Vector.empty[Ticket]
   def receive: PartialFunction[Any, Unit] = {
     case Add(newTickets) => tickets = tickets ++ newTickets
-    case Buy(buyTickets) =>
-      val takeTickets = tickets.take(buyTickets).toVector
-      if (takeTickets.size >= buyTickets) {
-        sender() ! Tickets(event, takeTickets)
-        tickets = tickets.drop(buyTickets)
-      } else {
-        sender() ! Tickets(event)
-      }
+    case Buy(nrOfTickets) =>
+      val entries = tickets.take(nrOfTickets)
+      if(entries.size >= nrOfTickets) {
+        sender() ! Tickets(event, entries)
+        tickets = tickets.drop(nrOfTickets)
+      } else sender() ! Tickets(event)
     case GetEvent => sender() ! Some(BoxOffice.Event(event, tickets.size))
     case Cancel =>
       sender() ! Some(BoxOffice.Event(event ,tickets.size))
