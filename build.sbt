@@ -4,11 +4,12 @@ version := "0.1"
 
 scalaVersion := "2.12.6"
 
+lazy val root = (project in file("."))
+  .aggregate(infrastructure, application, useCase, domain)
+
+
 lazy val infrastructure = (project in file("infrastructure")).settings(
   libraryDependencies ++= Seq(
-    "com.typesafe.slick" %% "slick" % "3.2.0",
-    "com.h2database" % "h2" % "1.4.193",
-    "org.slf4j" % "slf4j-nop" % "1.7.12"
   )
 ).dependsOn(application)
 
@@ -23,12 +24,24 @@ lazy val application = (project in file("application")).settings(
     "com.typesafe" % "config" % "1.3.3",
     "org.scalatest" %% "scalatest" % "3.0.5" % "test",
     "org.specs2" %% "specs2-core" % "4.2.0" % "test",
-    "org.sangria-graphql" %% "sangria-circe" % "1.2.1",
     "org.sangria-graphql" %% "sangria" % "1.4.2",
+    "org.sangria-graphql" %% "sangria-circe" % "1.2.1",
     "org.sangria-graphql" %% "sangria-spray-json" % "1.0.0",
     "org.sangria-graphql" %% "sangria-slowlog" % "0.1.8"
   )
 ).dependsOn(domain)
+
+lazy val useCase = (project in file("use-case")).settings(
+  libraryDependencies ++= Seq(
+    "org.sangria-graphql" %% "sangria" % "1.4.2",
+    "org.sangria-graphql" %% "sangria-circe" % "1.2.1",
+//    TODO -nishi 依存性の理解
+    "de.heikoseeberger" %% "akka-http-circe" % "1.20.0",
+    "io.circe" %%	"circe-core" % "0.9.2",
+    "io.circe" %% "circe-parser" % "0.9.2",
+    "io.circe" %% "circe-optics" % "0.9.2"
+  )
+).dependsOn(domain, infrastructure)
 
 lazy val domain = (project in file("domain")).settings(
   libraryDependencies ++= Seq(
