@@ -8,7 +8,7 @@ object SchemaDefinitions {
         resolve = _.value.id
       ),
       Field("title", StringType,
-        Some("title name"),
+        Some("title 名"),
         resolve = _.value.title
       ),
       Field("author", OptionType(StringType),
@@ -25,9 +25,9 @@ object SchemaDefinitions {
     "Query", fields[ArticleRepository, Unit](
       Field("article", OptionType(ArticleType),
         arguments = idArgument :: Nil,
-        resolve = ctx => ctx.ctx.findArticleById(ctx.arg(idArgument))),
+        resolve = c => c.ctx.findArticleById(c.arg(idArgument))),
       Field("articles", ListType(ArticleType),
-        resolve = ctx => ctx.ctx.findAllArticles),
+        resolve = c => c.ctx.findAllArticles),
     ),
   )
   val ArticleSchema = Schema(QueryType)

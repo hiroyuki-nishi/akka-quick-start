@@ -1,4 +1,4 @@
-name := "dynamoDBLocal"
+name := "akka-quick"
 
 version := "0.1"
 
@@ -10,12 +10,12 @@ lazy val root = (project in file("."))
 
 lazy val infrastructure = (project in file("infrastructure")).settings(
   libraryDependencies ++= Seq(
+    "com.amazonaws" % "aws-java-sdk-dynamodb" % "1.11.29",
   )
 ).dependsOn(application)
 
 lazy val application = (project in file("application")).settings(
   libraryDependencies ++= Seq(
-    "com.amazonaws" % "aws-java-sdk-dynamodb" % "1.11.29",
     "com.typesafe.akka" %% "akka-http"   % "10.1.5",
     "com.typesafe.akka" %% "akka-http-core" % "10.1.5",
     "com.typesafe.akka" %% "akka-http-spray-json" % "10.1.5",
@@ -23,9 +23,7 @@ lazy val application = (project in file("application")).settings(
     "com.typesafe.akka" %% "akka-stream" % "2.5.12",
     "com.typesafe" % "config" % "1.3.3",
     "org.scalatest" %% "scalatest" % "3.0.5" % "test",
-    "org.specs2" %% "specs2-core" % "4.2.0" % "test",
     "org.sangria-graphql" %% "sangria" % "1.4.2",
-    "org.sangria-graphql" %% "sangria-circe" % "1.2.1",
     "org.sangria-graphql" %% "sangria-spray-json" % "1.0.0",
     "org.sangria-graphql" %% "sangria-slowlog" % "0.1.8"
   )
@@ -37,9 +35,6 @@ lazy val useCase = (project in file("use-case")).settings(
     "org.sangria-graphql" %% "sangria-circe" % "1.2.1",
 //    TODO -nishi 依存性の理解
     "de.heikoseeberger" %% "akka-http-circe" % "1.20.0",
-    "io.circe" %%	"circe-core" % "0.9.2",
-    "io.circe" %% "circe-parser" % "0.9.2",
-    "io.circe" %% "circe-optics" % "0.9.2"
   )
 ).dependsOn(domain, infrastructure)
 
